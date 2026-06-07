@@ -530,11 +530,11 @@ function openEditCat(key){
   const parts=sec.category.split(' ');
   const emoji=parts[0]; const name=parts.slice(1).join(' ');
   openModal('✏️ Редактировать раздел',
-    \`<div class="field"><label>Иконка</label><input id="eCatEmoji" value="\${emoji}" maxlength="4"></div>
-     <div class="field"><label>Название</label><input id="eCatName" value="\${name}"></div>\`,
-    \`<button class="btn-save" onclick="saveEditCat('\${key}')">Сохранить</button>
+    `<div class="field"><label>Иконка</label><input id="eCatEmoji" value="${emoji}" maxlength="4"></div>
+     <div class="field"><label>Название</label><input id="eCatName" value="${name}"></div>`,
+    `<button class="btn-save" onclick="saveEditCat('${key}')">Сохранить</button>
      <button class="btn-cancel" onclick="closeModal()">Отмена</button>
-     <button class="btn-danger" onclick="confirmDelCat('\${key}')">🗑️</button>\`);
+     <button class="btn-danger" onclick="confirmDelCat('${key}')">🗑️</button>`);
 }
 window.saveEditCat=(key)=>{
   const sec=db.find(s=>s.key===key); if(!sec) return;
@@ -546,9 +546,9 @@ window.saveEditCat=(key)=>{
 window.confirmDelCat=(key)=>{
   const sec=db.find(s=>s.key===key); if(!sec) return;
   openModal('Удалить раздел?',
-    \`<p style="color:var(--text2);font-size:15px;line-height:1.5;">Удалить раздел <strong>\${sec.category}</strong> и все его рецепты (\${sec.items.length} шт)?<br><span style="color:#ef4444;font-size:13px;">Это нельзя отменить.</span></p>\`,
-    \`<button class="btn-danger" onclick="doDelCat('\${key}')">🗑️ Удалить всё</button>
-     <button class="btn-cancel" onclick="closeModal()">Отмена</button>\`);
+    `<p style="color:var(--text2);font-size:15px;line-height:1.5;">Удалить раздел <strong>${sec.category}</strong> и все его рецепты (${sec.items.length} шт)?<br><span style="color:#ef4444;font-size:13px;">Это нельзя отменить.</span></p>`,
+    `<button class="btn-danger" onclick="doDelCat('${key}')">🗑️ Удалить всё</button>
+     <button class="btn-cancel" onclick="closeModal()">Отмена</button>`);
 };
 window.doDelCat=(key)=>{
   db=db.filter(s=>s.key!==key); save(); closeModal(); render(); toast('🗑️ Раздел удалён');
