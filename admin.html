@@ -525,6 +525,16 @@ function toggleCatHidden(key){
   toast(sec.hidden?'🙈 Раздел скрыт':'👁 Раздел показан');
 }
 
+function moveCat(key, dir){
+  const i=db.findIndex(s=>s.key===key);
+  if(i<0) return;
+  const j=i+dir;
+  if(j<0||j>=db.length) return;
+  [db[i],db[j]]=[db[j],db[i]];
+  save(); render();
+  toast('↕️ Порядок изменён');
+}
+
 function openEditCat(key){
   const sec=db.find(s=>s.key===key); if(!sec) return;
   const parts=sec.category.split(' ');
@@ -731,8 +741,20 @@ function render(){
     cbEdit.className='btn-cat-ctrl';
     cbEdit.textContent='✏️';
     cbEdit.onclick=()=>openEditCat(sec.key);
+    // move up/down — позиция в общем массиве db
+    const dbIdx=db.findIndex(s=>s.key===sec.key);
+    const cbUp=document.createElement('button');
+    cbUp.className='btn-cat-ctrl'; cbUp.textContent='⬆';
+    cbUp.title='Выше'; cbUp.disabled=dbIdx<=0;
+    if(dbIdx<=0) cbUp.style.opacity='.3';
+    cbUp.onclick=()=>moveCat(sec.key,-1);
+    const cbDown=document.createElement('button');
+    cbDown.className='btn-cat-ctrl'; cbDown.textContent='⬇';
+    cbDown.title='Ниже'; cbDown.disabled=dbIdx>=db.length-1;
+    if(dbIdx>=db.length-1) cbDown.style.opacity='.3';
+    cbDown.onclick=()=>moveCat(sec.key,1);
     shBtns.appendChild(ab);
-    if(editMode){ shBtns.appendChild(cbHide); shBtns.appendChild(cbEdit); }
+    if(editMode){ shBtns.appendChild(cbUp); shBtns.appendChild(cbDown); shBtns.appendChild(cbHide); shBtns.appendChild(cbEdit); }
     sh.appendChild(t); sh.appendChild(shBtns); wrap.appendChild(sh);
     const grid=document.createElement('div'); grid.className='cards';
     matched.forEach(it=>grid.appendChild(mkCard(sec.key,it)));
