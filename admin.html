@@ -197,6 +197,8 @@ main { max-width:900px; margin:0 auto; padding:18px 14px 80px; }
   .ing-btn-short { display:inline; }
 }
 </style>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
@@ -238,9 +240,7 @@ main { max-width:900px; margin:0 auto; padding:18px 14px 80px; }
 
 <main id="main"></main>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+<script>
 
 // ═══════════════ DEFAULT DATA ═══════════════
 const DEF = [
@@ -764,27 +764,8 @@ function mkCard(ck,item){
 document.getElementById('search').addEventListener('input',e=>{ q=e.target.value.toLowerCase().trim(); render(); });
 
 
-  // ── Expose all functions to window for onclick handlers ──
-  window.toggleEdit = toggleEdit;
-  window.openIngModal = openIngModal;
-  window.openEdit = openEdit;
-  window.setStatus = setStatus;
-  window.deleteItem = deleteItem;
-  window.openAddCat = openAddCat;
-  window.closeModal = closeModal;
-  window.toggleIngPanel = toggleIngPanel;
-  window.addIngGlobal = addIngGlobal;
-  window.deleteIng = deleteIng;
-  window.confDeleteIng = confDeleteIng;
-  window.startRenameIng = startRenameIng;
-  window.confirmRename = confirmRename;
-  window.confDel = confDel;
-  window.saveCat = saveCat;
-  window.saveIt = saveIt;
-  window.setEditStatus = setEditStatus;
 
-  // ── FIREBASE SETUP ──
-
+  // ── FIREBASE SETUP (compat) ──
   const firebaseConfig = {
     apiKey: "AIzaSyAjezCzh_JEZZUho_vqcM1Zb6shzBYyVAM",
     authDomain: "salvador-techcard.firebaseapp.com",
@@ -793,14 +774,14 @@ document.getElementById('search').addEventListener('input',e=>{ q=e.target.value
     messagingSenderId: "1055541875410",
     appId: "1:1055541875410:web:25a24634f9da7d8dfe930b"
   };
-  const fbApp = initializeApp(firebaseConfig);
-  const fdb = getFirestore(fbApp);
-  const DB_DOC = doc(fdb, 'techcard', 'data');
+  firebase.initializeApp(firebaseConfig);
+  const fdb = firebase.firestore();
+  const DB_DOC = fdb.collection('techcard').doc('data');
 
   async function loadFromFirebase(){
     try {
-      const snap = await getDoc(DB_DOC);
-      if(snap.exists()){
+      const snap = await DB_DOC.get();
+      if(snap.exists){
         const d = snap.data();
         db = d.recipes || JSON.parse(JSON.stringify(DEF));
         ingList = d.ingredients || buildIngListFromDB();
@@ -814,13 +795,12 @@ document.getElementById('search').addEventListener('input',e=>{ q=e.target.value
 
   async function saveToFirebase(){
     try {
-      await setDoc(DB_DOC, { recipes: db, ingredients: ingList });
+      await DB_DOC.set({ recipes: db, ingredients: ingList });
     } catch(e){ console.error('Firebase save error', e); toast('❌ Ошибка сохранения'); }
   }
 
-  // Live updates — всем кто смотрит видит изменения сразу
-  onSnapshot(DB_DOC, (snap)=>{
-    if(snap.exists()){
+  DB_DOC.onSnapshot((snap)=>{
+    if(snap.exists){
       const d = snap.data();
       db = d.recipes || db;
       ingList = d.ingredients || ingList;
