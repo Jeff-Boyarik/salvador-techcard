@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Тех. Карта — Salvador Coffee</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+:root {
+  --bg:#E8F4F5; --card:#fff; --hdr:#3BADA8; --acc:#3BADA8; --acc-d:#2d8f8b;
+  --acc-l:#e0f5f4; --text:#223030; --text2:#3d5555; --muted:#6b8f8f;
+  --border:#DCECED; --sh:0 2px 8px rgba(59,173,168,.10);
+  --sh2:0 4px 18px rgba(59,173,168,.18); --r:16px;
+  --new:#22c55e; --new-bg:#f0fdf4; --feat:#f59e0b; --feat-bg:#fffbeb;
+}
+body { font-family:'Segoe UI',Roboto,-apple-system,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+/* ── HEADER ── */
+header { background:var(--hdr); position:sticky; top:0; z-index:200; box-shadow:0 2px 12px rgba(59,173,168,.25); }
+.hdr-top { display:flex; align-items:center; gap:12px; padding:12px 18px 10px; }
+.logo { width:42px; height:42px; border-radius:50%; background:rgba(255,255,255,.25); display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0; border:2px solid rgba(255,255,255,.4); }
+.hdr-info { flex:1; }
+.hdr-info h1 { font-size:18px; font-weight:700; color:#fff; letter-spacing:.03em; }
+.hdr-info p { font-size:12px; color:rgba(255,255,255,.75); }
+.hdr-btns { display:flex; gap:8px; }
+.btn-hdr { background:rgba(255,255,255,.2); border:1.5px solid rgba(255,255,255,.4); border-radius:10px; color:#fff; font-size:13px; font-weight:600; padding:7px 13px; cursor:pointer; font-family:inherit; transition:all .18s; white-space:nowrap; }
+.btn-hdr.active, .btn-hdr:hover { background:rgba(255,255,255,.35); }
+.hdr-controls { padding:0 14px 12px; display:flex; flex-direction:column; gap:8px; }
+.search-wrap { position:relative; }
+.s-icon { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:14px; pointer-events:none; }
+#search { width:100%; background:rgba(255,255,255,.92); border:1.5px solid rgba(255,255,255,.5); border-radius:12px; padding:9px 14px 9px 36px; font-family:inherit; font-size:14px; color:var(--text); outline:none; transition:border-color .2s,box-shadow .2s; }
+#search:focus { border-color:#fff; box-shadow:0 0 0 3px rgba(255,255,255,.25); }
+#search::placeholder { color:var(--muted); }
+.pills { display:flex; gap:6px; overflow-x:auto; padding-bottom:2px; scrollbar-width:none; }
+.pills::-webkit-scrollbar { display:none; }
+.pill { flex-shrink:0; background:rgba(255,255,255,.22); border:1.5px solid rgba(255,255,255,.35); border-radius:20px; padding:5px 13px; font-size:12.5px; color:rgba(255,255,255,.9); cursor:pointer; white-space:nowrap; font-family:inherit; font-weight:500; transition:all .15s; }
+.pill.active { background:#fff; border-color:#fff; color:var(--acc-d); font-weight:700; }
+.pill-add { border-style:dashed !important; }
+
+/* ── EDIT BAR ── */
+.edit-bar { display:none; background:#fff8ed; border-bottom:2px solid var(--feat); padding:8px 18px; font-size:13px; color:#92400e; font-weight:600; align-items:center; gap:8px; flex-wrap:wrap; }
+.edit-bar.on { display:flex; }
+.legend { display:flex; align-items:center; gap:5px; font-size:12px; font-weight:500; }
+.ldot { width:10px; height:10px; border-radius:50%; }
+
+/* ── MAIN ── */
+main { max-width:900px; margin:0 auto; padding:18px 14px 80px; }
+.sec-hdr { display:flex; align-items:center; justify-content:space-between; margin:28px 0 12px; }
+.sec-title { font-size:18px; font-weight:700; color:var(--text); }
+.btn-add-item { display:none; background:var(--acc); color:#fff; border:none; border-radius:10px; padding:7px 16px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; align-items:center; gap:6px; transition:background .15s; }
+.edit-mode .btn-add-item { display:flex; }
+.btn-add-item:hover { background:var(--acc-d); }
+.cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(268px,1fr)); gap:10px; }
+
+/* ── CARD ── */
+.card { background:var(--card); border:1.5px solid var(--border); border-radius:var(--r); overflow:hidden; cursor:pointer; transition:box-shadow .18s,transform .14s,border-color .15s; box-shadow:var(--sh); position:relative; display:flex; flex-direction:column; }
+.card:hover { box-shadow:var(--sh2); border-color:#b2dcdc; }
+.card:active { transform:scale(.985); }
+.card.expanded .card-body { display:block; }
+.card.selected { border-color:var(--acc); border-width:2px; box-shadow:0 0 0 3px rgba(59,173,168,.2); }
+.card.is-new { border-color:var(--new); }
+.card.is-feat { border-color:var(--feat); }
+.card.is-hidden { opacity:.4; border-style:dashed; }
+
+/* ── CARD HEADER ── */
+.card-hdr { padding:12px 14px 10px; display:flex; align-items:flex-start; gap:8px; flex:1; }
+.card-name { flex:1; font-size:15px; font-weight:600; color:var(--text); line-height:1.35; }
+.sz-badges { display:flex; flex-wrap:wrap; gap:4px; flex-shrink:0; }
+.sz-badge { background:var(--acc-l); border:1px solid #b2dcdc; border-radius:7px; padding:2px 8px; font-size:11.5px; font-weight:600; color:var(--acc-d); white-space:nowrap; }
+
+/* ── STATUS BADGE — bottom-right corner ── */
+.card-status { display:flex; justify-content:flex-end; padding:0 10px 8px; min-height:0; }
+.badge { font-size:10px; font-weight:700; border-radius:6px; padding:3px 9px; text-transform:uppercase; letter-spacing:.05em; white-space:nowrap; }
+.b-new { background:var(--new); color:#fff; }
+.b-feat { background:var(--feat); color:#fff; }
+.b-hid { background:#94a3b8; color:#fff; }
+.card-status:empty { display:none; }
+
+/* ── EDIT CONTROLS ── */
+.ec { display:none; padding:8px 10px 0; gap:6px; flex-wrap:wrap; }
+.edit-mode .ec { display:flex; }
+.ec-btn { background:#fff; border:1.5px solid var(--border); border-radius:8px; padding:5px 10px; font-size:11.5px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:4px; color:var(--text2); box-shadow:0 1px 3px rgba(0,0,0,.06); transition:all .14s; font-family:inherit; white-space:nowrap; }
+.ec-btn:hover { border-color:var(--acc); color:var(--acc); background:var(--acc-l); }
+.ec-new:hover { border-color:var(--new)!important; color:var(--new)!important; background:var(--new-bg)!important; }
+.ec-feat:hover { border-color:var(--feat)!important; color:var(--feat)!important; background:var(--feat-bg)!important; }
+.ec-hid:hover { border-color:#94a3b8!important; color:#64748b!important; background:#f8fafc!important; }
+
+/* ── CARD BODY ── */
+.card-body { display:none; border-top:1.5px solid var(--border); }
+.sz-tabs { display:flex; border-bottom:1.5px solid var(--border); background:#f7fbfb; }
+.sz-tab { flex:1; padding:8px 6px; text-align:center; font-size:12.5px; font-weight:600; color:var(--muted); cursor:pointer; border-right:1px solid var(--border); transition:all .14s; }
+.sz-tab:last-child { border-right:none; }
+.sz-tab.active { background:#fff; color:var(--acc-d); }
+.ings { padding:10px 14px 12px; }
+.ing-row { display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid #f0f8f8; }
+.ing-row:last-child { border-bottom:none; }
+.ing-name { font-size:13.5px; color:var(--text2); }
+.ing-amt { background:var(--acc-l); border-radius:7px; padding:2px 9px; font-size:13px; font-weight:700; color:var(--acc-d); }
+.card-foot { text-align:center; padding:7px; font-size:11.5px; color:var(--muted); border-top:1px solid #f0f8f8; background:#fafefe; }
+.empty-cat { color:var(--muted); font-size:13px; padding:10px 4px; }
+
+/* ── INGREDIENTS PANEL ── */
+.ing-panel { background:var(--card); border:1.5px solid var(--border); border-radius:var(--r); box-shadow:var(--sh); margin-bottom:8px; overflow:hidden; }
+.ing-panel-hdr { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; cursor:pointer; user-select:none; }
+.ing-panel-hdr:hover { background:#f7fbfb; }
+.ing-panel-title { display:flex; align-items:center; gap:8px; font-size:15px; font-weight:600; color:var(--text2); }
+.ing-panel-title span { font-size:18px; }
+.ing-panel-sub { font-size:12px; color:var(--muted); font-weight:400; margin-left:4px; }
+.ing-chevron { color:var(--muted); font-size:12px; transition:transform .22s; }
+.ing-panel.open .ing-chevron { transform:rotate(180deg); }
+.ing-panel-body { display:none; border-top:1.5px solid var(--border); }
+.ing-panel.open .ing-panel-body { display:block; }
+.ing-table { width:100%; border-collapse:collapse; }
+.ing-table th { background:#f7fbfb; padding:8px 14px; font-size:11.5px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; text-align:left; border-bottom:1.5px solid var(--border); }
+.ing-table th:last-child { text-align:right; }
+.ing-table td { padding:8px 14px; font-size:13.5px; border-bottom:1px solid #f0f8f8; color:var(--text2); vertical-align:middle; }
+.ing-table tr:last-child td { border-bottom:none; }
+.ing-table td:last-child { text-align:right; }
+.ing-count { background:var(--acc-l); color:var(--acc-d); border-radius:20px; padding:2px 10px; font-size:12px; font-weight:700; display:inline-block; }
+.ing-edit-row { display:flex; gap:6px; align-items:center; }
+.ing-edit-row input { flex:1; border:1.5px solid var(--border); border-radius:8px; padding:5px 9px; font-size:13px; font-family:inherit; color:var(--text); outline:none; background:#fff; transition:border-color .14s; }
+.ing-edit-row input:focus { border-color:var(--acc); }
+.ing-panel-footer { padding:10px 14px; border-top:1.5px solid var(--border); display:flex; gap:8px; background:#fafefe; }
+.btn-add-ing-global { background:var(--acc); color:#fff; border:none; border-radius:9px; padding:7px 14px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; transition:background .14s; }
+.btn-add-ing-global:hover { background:var(--acc-d); }
+.btn-sm-del { background:#fee2e2; border:none; border-radius:6px; color:#ef4444; width:26px; height:26px; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .14s; flex-shrink:0; }
+.btn-sm-del:hover { background:#fca5a5; }
+.btn-sm-ok { background:var(--acc-l); border:none; border-radius:6px; color:var(--acc-d); width:26px; height:26px; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .14s; flex-shrink:0; }
+.btn-sm-ok:hover { background:#b2dcdc; }
+
+/* ── MODAL ── */
+.overlay { display:none; position:fixed; inset:0; background:rgba(34,48,48,.5); z-index:500; align-items:center; justify-content:center; padding:16px; }
+.overlay.open { display:flex; }
+.modal { background:#fff; border-radius:20px; width:100%; max-width:500px; max-height:92vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,.2); animation:mIn .2s ease; }
+@keyframes mIn { from{transform:scale(.93) translateY(10px);opacity:0} to{transform:none;opacity:1} }
+.m-hdr { background:var(--hdr); padding:16px 20px; border-radius:18px 18px 0 0; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:10; }
+.m-hdr h3 { color:#fff; font-size:16px; font-weight:700; }
+.m-close { background:rgba(255,255,255,.2); border:none; border-radius:8px; color:#fff; width:30px; height:30px; cursor:pointer; font-size:15px; display:flex; align-items:center; justify-content:center; transition:background .14s; }
+.m-close:hover { background:rgba(255,255,255,.35); }
+.m-body { padding:20px; }
+.m-foot { padding:10px 20px 20px; display:flex; gap:8px; }
+
+/* modal fields */
+.field { margin-bottom:16px; }
+.field label { display:block; font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; margin-bottom:6px; }
+.field input,.field select { width:100%; border:1.5px solid var(--border); border-radius:10px; padding:10px 13px; font-family:inherit; font-size:14px; color:var(--text); outline:none; transition:border-color .18s,box-shadow .18s; background:#fff; }
+.field input:focus,.field select:focus { border-color:var(--acc); box-shadow:0 0 0 3px rgba(59,173,168,.12); }
+.status-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.status-opt { border:1.5px solid var(--border); border-radius:10px; padding:10px 12px; cursor:pointer; transition:all .15s; display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600; color:var(--text2); }
+.status-opt:hover { border-color:var(--acc); background:var(--acc-l); }
+.status-opt.active { background:var(--acc-l); border-color:var(--acc); color:var(--acc-d); }
+.status-opt[data-v="new"].active { background:var(--new-bg); border-color:var(--new); color:#15803d; }
+.status-opt[data-v="featured"].active { background:var(--feat-bg); border-color:var(--feat); color:#92400e; }
+.status-opt[data-v="hidden"].active { background:#f8fafc; border-color:#94a3b8; color:#475569; }
+
+/* size blocks */
+.sz-block { background:var(--bg); border-radius:12px; padding:12px 14px; border:1.5px solid var(--border); margin-bottom:8px; }
+.sz-block-title { font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between; }
+.sz-vol-input { border:1.5px solid var(--border); border-radius:8px; padding:7px 11px; font-size:13px; font-family:inherit; color:var(--text); outline:none; background:#fff; width:100%; margin-bottom:10px; transition:border-color .14s; }
+.sz-vol-input:focus { border-color:var(--acc); }
+.ie { display:grid; grid-template-columns:1fr auto auto; gap:5px; align-items:center; margin-bottom:5px; position:relative; }
+.ie-name-wrap { position:relative; }
+.ie-name { width:100%; border:1.5px solid var(--border); border-radius:8px; padding:7px 11px; font-size:13px; font-family:inherit; color:var(--text); outline:none; background:#fff; transition:border-color .14s; }
+.ie-name:focus { border-color:var(--acc); }
+.ie-amt { width:82px; border:1.5px solid var(--border); border-radius:8px; padding:7px 9px; font-size:13px; font-family:inherit; color:var(--text); outline:none; background:#fff; transition:border-color .14s; }
+.ie-amt:focus { border-color:var(--acc); }
+.autocomplete-list { position:absolute; top:100%; left:0; right:0; background:#fff; border:1.5px solid var(--acc); border-radius:10px; box-shadow:0 8px 24px rgba(59,173,168,.18); z-index:100; max-height:180px; overflow-y:auto; margin-top:3px; }
+.ac-item { padding:8px 12px; font-size:13px; cursor:pointer; color:var(--text2); transition:background .12s; }
+.ac-item:hover, .ac-item.ac-active { background:var(--acc-l); color:var(--acc-d); font-weight:600; }
+.ac-item mark { background:none; color:var(--acc-d); font-weight:700; }
+.btn-add-ing { background:var(--acc-l); border:1.5px dashed #b2dcdc; border-radius:8px; color:var(--acc-d); font-size:13px; font-weight:600; padding:7px 12px; cursor:pointer; font-family:inherit; margin-top:4px; display:flex; align-items:center; gap:5px; transition:background .14s; width:100%; justify-content:center; }
+.btn-add-ing:hover { background:#c9f0ee; }
+.btn-add-sz { background:var(--acc-l); border:1.5px dashed #b2dcdc; border-radius:10px; color:var(--acc-d); font-size:13px; font-weight:600; padding:9px 14px; cursor:pointer; font-family:inherit; display:flex; align-items:center; gap:5px; transition:background .14s; margin-top:4px; width:100%; justify-content:center; }
+.btn-add-sz:hover { background:#c9f0ee; }
+.btn-del-sz { border:none; background:none; color:#ef4444; font-size:12px; cursor:pointer; font-family:inherit; font-weight:600; opacity:.7; transition:opacity .14s; padding:0; }
+.btn-del-sz:hover { opacity:1; }
+.btn-del-ing { background:none; border:none; color:#ef4444; font-size:15px; cursor:pointer; width:26px; height:26px; display:flex; align-items:center; justify-content:center; border-radius:6px; transition:background .12s; flex-shrink:0; }
+.btn-del-ing:hover { background:#fee2e2; }
+.btn-save { flex:1; background:var(--acc); color:#fff; border:none; border-radius:12px; padding:12px; font-size:15px; font-weight:700; cursor:pointer; font-family:inherit; transition:background .14s; }
+.btn-save:hover { background:var(--acc-d); }
+.btn-cancel { background:var(--bg); color:var(--text2); border:1.5px solid var(--border); border-radius:12px; padding:12px 18px; font-size:14px; font-weight:600; cursor:pointer; font-family:inherit; transition:background .14s; }
+.btn-cancel:hover { background:#d9eded; }
+.btn-danger { background:#fee2e2; color:#ef4444; border:none; border-radius:12px; padding:12px 16px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; transition:background .14s; }
+.btn-danger:hover { background:#fca5a5; }
+.m-divider { font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; margin:4px 0 12px; }
+
+/* ── MISC ── */
+.empty { text-align:center; padding:50px 20px; color:var(--muted); font-size:15px; }
+.empty span { display:block; font-size:40px; margin-bottom:10px; }
+.toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--text); color:#fff; padding:10px 20px; border-radius:12px; font-size:14px; font-weight:600; opacity:0; pointer-events:none; transition:opacity .3s; z-index:999; white-space:nowrap; }
+.toast.show { opacity:1; }
+@media(max-width:400px){ .cards{grid-template-columns:1fr;} .status-grid{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="m-hdr"><h3 id="mTitle">Рецепт</h3><button class="m-close" onclick="closeModal()">✕</button></div>
+    <div class="m-body" id="mBody"></div>
+    <div class="m-foot" id="mFoot"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<header>
+  <div class="hdr-top">
+    <div class="logo">☕</div>
+    <div class="hdr-info"><h1>SALVADOR</h1><p>Технологическая карта</p></div>
+    <div class="hdr-btns">
+      <button class="btn-hdr" onclick="openIngModal()">🧂 Ингредиенты</button>
+    </div>
+  </div>
+  <div class="hdr-controls">
+    <div class="search-wrap">
+      <span class="s-icon">🔍</span>
+      <input type="text" id="search" placeholder="Поиск напитка или ингредиента...">
+    </div>
+    <div class="pills" id="pills"></div>
+  </div>
+</header>
+
+
+
+<main id="main"></main>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// ═══════════════ DEFAULT DATA ═══════════════
+const DEF = [
+  { category:"☕ На основе эспрессо", key:"espresso", items:[
+    { id:"esp1", name:"Эспрессо", status:"normal", sizes:[{label:"30 мл",ingredients:[{name:"Кофе",amount:"10 гр"}]},{label:"60 мл",ingredients:[{name:"Кофе",amount:"20 гр"}]}]},
+    { id:"esp2", name:"Американо", status:"normal", sizes:[{label:"130 мл",ingredients:[{name:"Кофе",amount:"10 гр"},{name:"Вода",amount:"100 мл"}]},{label:"190 мл",ingredients:[{name:"Кофе",amount:"20 гр"},{name:"Вода",amount:"130 мл"}]}]},
+    { id:"esp3", name:"Капучино", status:"normal", sizes:[{label:"200 мл",ingredients:[{name:"Кофе",amount:"10 гр"},{name:"Молоко",amount:"150 мл"}]},{label:"300 мл",ingredients:[{name:"Кофе",amount:"20 гр"},{name:"Молоко",amount:"220 мл"}]},{label:"400 мл",ingredients:[{name:"Кофе",amount:"30 гр"},{name:"Молоко",amount:"270 мл"}]}]},
+    { id:"esp4", name:"Латте", status:"normal", sizes:[{label:"220 мл",ingredients:[{name:"Кофе",amount:"10 гр"},{name:"Молоко",amount:"170 мл"}]},{label:"440 мл",ingredients:[{name:"Кофе",amount:"20 гр"},{name:"Молоко",amount:"270 мл"}]}]},
+    { id:"esp5", name:"Мокачино", status:"normal", sizes:[{label:"220 мл",ingredients:[{name:"Кофе",amount:"10 гр"},{name:"Шоколадная смесь",amount:"40 мл"},{name:"Молоко",amount:"150 мл"}]},{label:"440 мл",ingredients:[{name:"Кофе",amount:"20 гр"},{name:"Шоколадная смесь",amount:"80 мл"},{name:"Молоко",amount:"250 мл"}]}]},
+    { id:"esp6", name:"Флэт Уайт", status:"normal", sizes:[{label:"220 мл",ingredients:[{name:"Кофе",amount:"20 гр"},{name:"Молоко",amount:"150 мл"}]}]},
+    { id:"esp7", name:"Глясе", status:"normal", sizes:[{label:"220 мл",ingredients:[{name:"Кофе",amount:"10 гр"},{name:"Вода",amount:"100 мл"},{name:"Мороженое",amount:"50 гр"}]}]},
+    { id:"esp8", name:"Аффогато", status:"normal", sizes:[{label:"220 мл",ingredients:[{name:"Кофе",amount:"10 гр"},{name:"Мороженое",amount:"50 гр"}]}]}
+  ]},
+  { category:"🍫 Шоколадные напитки", key:"choco", items:[
+    { id:"cho1", name:"Какао Молочный", status:"normal", sizes:[{label:"220 мл",ingredients:[{name:"Молоко",amount:"150 мл"},{name:"Шокол. масса молочная",amount:"25 гр"}]},{label:"440 мл",ingredients:[{name:"Молоко",amount:"250 мл"},{name:"Шокол. масса молочная",amount:"50 гр"}]}]},
+    { id:"cho2", name:"Какао Белый", status:"normal", sizes:[{label:"220 мл",ingredients:[{name:"Молоко",amount:"150 мл"},{name:"Шокол. масса белая",amount:"25 гр"}]},{label:"440 мл",ingredients:[{name:"Молоко",amount:"250 мл"},{name:"Шокол. масса белая",amount:"50 гр"}]}]},
+    { id:"cho3", name:"Какао Без сахара 60%", status:"normal", sizes:[{label:"300 мл",ingredients:[{name:"Молоко",amount:"220 мл"},{name:"Шоколад 60% (Инж)",amount:"40 гр"},{name:"Порошок малины (укр.)",amount:"0,1 гр"}]}]},
+    { id:"cho4", name:"Какао Без сахара 100%", status:"normal", sizes:[{label:"300 мл",ingredients:[{name:"Молоко",amount:"220 мл"},{name:"Шоколад 100% (Инж)",amount:"30 гр"},{name:"Порошок малины (укр.)",amount:"0,1 гр"}]}]},
+    { id:"cho5", name:"Горячий шоколад Milk", status:"normal", sizes:[{label:"220 мл",ingredients:[{name:"Молоко",amount:"180 мл"},{name:"Шоколад OZERA молочный",amount:"40 гр"}]},{label:"440 мл",ingredients:[{name:"Молоко",amount:"320 мл"},{name:"Шоколад OZERA молочный",amount:"70 гр"}]}]}
+  ]},
+  { category:"🥛 Раф", key:"raf", items:[
+    { id:"raf1", name:"Ванильный (классический)", status:"normal", sizes:[{label:"220 мл",ingredients:[{name:"Кофе",amount:"10 гр"},{name:"Молоко",amount:"100 мл"},{name:"Сливки 22%",amount:"50 мл"},{name:"Ванильный сахар",amount:"5 гр"}]},{label:"440 мл",ingredients:[{name:"Кофе",amount:"20 гр"},{name:"Молоко",amount:"180 мл"},{name:"Сливки 22%",amount:"90 мл"},{name:"Ванильный сахар",amount:"8 гр"}]}]},
+    { id:"raf2", name:"Кокосовый", status:"normal", sizes:[{label:"220 мл",ingredients:[{name:"Кофе",amount:"10 гр"},{name:"Кокосовое молоко",amount:"80 мл"},{name:"Сливки 22%",amount:"50 мл"},{name:"Сироп Кокос",amount:"10 мл"}]},{label:"440 мл",ingredients:[{name:"Кофе",amount:"20 гр"},{name:"Кокосовое молоко",amount:"160 мл"},{name:"Сливки 22%",amount:"90 мл"},{name:"Сироп Кокос",amount:"20 мл"}]}]},
+    { id:"raf3", name:"Арахисовый", status:"normal", sizes:[{label:"220 мл",ingredients:[{name:"Кофе",amount:"10 гр"},{name:"Молоко",amount:"100 мл"},{name:"Сливки 22%",amount:"50 мл"},{name:"Арахисовая паста",amount:"30 гр"},{name:"Ванильный сахар",amount:"5 гр"}]},{label:"440 мл",ingredients:[{name:"Кофе",amount:"20 гр"},{name:"Молоко",amount:"180 мл"},{name:"Сливки 22%",amount:"90 мл"},{name:"Арахисовая паста",amount:"60 гр"},{name:"Ванильный сахар",amount:"8 гр"}]}]},
+    { id:"raf4", name:"С Халвой", status:"normal", sizes:[{label:"220 мл",ingredients:[{name:"Кофе",amount:"10 гр"},{name:"Молоко",amount:"100 мл"},{name:"Сливки 22%",amount:"50 мл"},{name:"Халва",amount:"20 гр"},{name:"Сироп Поп-корн",amount:"10 мл"}]},{label:"440 мл",ingredients:[{name:"Кофе",amount:"20 гр"},{name:"Молоко",amount:"180 мл"},{name:"Сливки 22%",amount:"90 мл"},{name:"Халва",amount:"35 гр"},{name:"Сироп Поп-корн",amount:"20 мл"}]}]}
+  ]},
+  { category:"🍋 Фреш (Металлургов)", key:"fresh", items:[
+    { id:"fr1", name:"Яблочный", status:"normal", sizes:[{label:"200 мл",ingredients:[{name:"Яблоко Грени",amount:"0,5 кг"}]}]},
+    { id:"fr2", name:"Апельсиновый", status:"normal", sizes:[{label:"200 мл",ingredients:[{name:"Апельсин",amount:"0,6 кг"}]}]},
+    { id:"fr3", name:"Морковный", status:"normal", sizes:[{label:"200 мл",ingredients:[{name:"Морковь",amount:"0,4 кг"}]}]}
+  ]},
+  { category:"🍦 Милкшейк", key:"milkshake", items:[
+    { id:"ms1", name:"Классический", status:"normal", sizes:[{label:"440 мл",ingredients:[{name:"Мороженое",amount:"100 гр"},{name:"Молоко",amount:"250 мл"},{name:"Взбитые сливки (укр.)",amount:"20 гр"},{name:"Маршмэллоу",amount:"5 гр"}]}]},
+    { id:"ms2", name:"С бананом", status:"normal", sizes:[{label:"440 мл",ingredients:[{name:"Мороженое",amount:"100 гр"},{name:"Молоко",amount:"250 мл"},{name:"Банан (без кожуры)",amount:"70 гр"},{name:"Взбитые сливки (укр.)",amount:"20 гр"}]}]},
+    { id:"ms3", name:"С клубникой", status:"normal", sizes:[{label:"440 мл",ingredients:[{name:"Мороженое",amount:"100 гр"},{name:"Молоко",amount:"250 мл"},{name:"Клубника",amount:"70 гр"},{name:"Топпинг",amount:"20 гр"},{name:"Взбитые сливки (укр.)",amount:"20 гр"}]}]},
+    { id:"ms4", name:"ОРЕО", status:"normal", sizes:[{label:"440 мл",ingredients:[{name:"Мороженое",amount:"100 гр"},{name:"Молоко",amount:"250 мл"},{name:"Печенье Орео",amount:"30 гр"},{name:"Орео (украшение)",amount:"10 гр"},{name:"Взбитые сливки",amount:"20 гр"}]}]},
+    { id:"ms5", name:"Рафаэлло", status:"normal", sizes:[{label:"440 мл",ingredients:[{name:"Мороженое",amount:"100 гр"},{name:"Молоко",amount:"250 мл"},{name:"Сгущённое молоко",amount:"15 гр"},{name:"Кокосовая стружка",amount:"5 гр"},{name:"Миндальная стружка",amount:"6 гр"},{name:"Взбитые сливки",amount:"20 гр"}]}]}
+  ]},
+  { category:"🍵 Чай", key:"tea", items:[
+    { id:"tea1", name:"Малина и апельсин", status:"normal", sizes:[{label:"400 мл",ingredients:[{name:"Малина с/м",amount:"20 гр"},{name:"Апельсин",amount:"20 гр"},{name:"Чай чёрный",amount:"—"}]},{label:"800 мл",ingredients:[{name:"Малина с/м",amount:"40 гр"},{name:"Апельсин",amount:"40 гр"},{name:"Чай чёрный",amount:"—"}]}]},
+    { id:"tea2", name:"Облепиха и имбирь", status:"normal", sizes:[{label:"400 мл",ingredients:[{name:"Облепиха",amount:"30 гр"},{name:"Имбирь (мелко)",amount:"10 гр"},{name:"Лимон",amount:"10 гр"},{name:"Зелёный чай",amount:"3 гр"},{name:"Мёд",amount:"30 гр"}]},{label:"800 мл",ingredients:[{name:"Облепиха",amount:"60 гр"},{name:"Имбирь (мелко)",amount:"20 гр"},{name:"Лимон",amount:"20 гр"},{name:"Зелёный чай",amount:"6 гр"},{name:"Мёд",amount:"60 гр"}]}]},
+    { id:"tea3", name:"Гранат с апельсином", status:"normal", sizes:[{label:"400 мл",ingredients:[{name:"Сок граната",amount:"150 мл"},{name:"Апельсин",amount:"20 гр"},{name:"Корица палочкой",amount:"0,5 шт"},{name:"Зелёный чай",amount:"3 гр"},{name:"Мёд",amount:"20 гр"},{name:"Гвоздика",amount:"2 шт"}]},{label:"800 мл",ingredients:[{name:"Сок граната",amount:"300 мл"},{name:"Апельсин",amount:"40 гр"},{name:"Корица палочкой",amount:"1 шт"},{name:"Зелёный чай",amount:"6 гр"},{name:"Мёд",amount:"40 гр"},{name:"Гвоздика",amount:"4 шт"}]}]},
+    { id:"tea4", name:"Брусничный", status:"normal", sizes:[{label:"400 мл",ingredients:[{name:"Брусника",amount:"20 гр"},{name:"Апельсин",amount:"20 гр"},{name:"Мёд",amount:"20 гр"},{name:"Чёрный чай",amount:"4 гр"},{name:"Гвоздика",amount:"2 шт"},{name:"Корица палочкой",amount:"0,5 шт"}]},{label:"800 мл",ingredients:[{name:"Брусника",amount:"40 гр"},{name:"Апельсин",amount:"40 гр"},{name:"Мёд",amount:"40 гр"},{name:"Чёрный чай",amount:"8 гр"},{name:"Гвоздика",amount:"4 шт"},{name:"Корица палочкой",amount:"1 шт"}]}]},
+    { id:"tea5", name:"Яблоко с корицей", status:"normal", sizes:[{label:"400 мл",ingredients:[{name:"Яблоко",amount:"20 гр"},{name:"Лимон",amount:"10 гр"},{name:"Апельсин",amount:"10 гр"},{name:"Гвоздика",amount:"2 шт"},{name:"Чёрный чай",amount:"4 гр"},{name:"Мёд",amount:"15 гр"},{name:"Корица палочкой",amount:"0,5 шт"}]},{label:"800 мл",ingredients:[{name:"Яблоко",amount:"40 гр"},{name:"Лимон",amount:"20 гр"},{name:"Апельсин",amount:"20 гр"},{name:"Гвоздика",amount:"4 шт"},{name:"Чёрный чай",amount:"8 гр"},{name:"Мёд",amount:"30 гр"},{name:"Корица палочкой",amount:"1 шт"}]}]},
+    { id:"tea6", name:"Облепиха и клюква", status:"normal", sizes:[{label:"400 мл",ingredients:[{name:"Облепиха",amount:"20 гр"},{name:"Клюква",amount:"20 гр"},{name:"Лимон",amount:"15 гр"},{name:"Мёд",amount:"30 гр"},{name:"Зелёный чай",amount:"3 гр"}]},{label:"800 мл",ingredients:[{name:"Облепиха",amount:"40 гр"},{name:"Клюква",amount:"40 гр"},{name:"Лимон",amount:"30 гр"},{name:"Мёд",amount:"60 гр"},{name:"Зелёный чай",amount:"6 гр"}]}]},
+    { id:"tea7", name:"Медово-имбирный", status:"normal", sizes:[{label:"400 мл",ingredients:[{name:"Имбирь",amount:"25 гр"},{name:"Мёд",amount:"35 гр"},{name:"Перец",amount:"1 шт"},{name:"Лимон",amount:"15 гр"}]},{label:"800 мл",ingredients:[{name:"Имбирь",amount:"50 гр"},{name:"Мёд",amount:"70 гр"},{name:"Перец",amount:"2 шт"},{name:"Лимон",amount:"30 гр"}]}]}
+  ]},
+  { category:"🍃 Матча", key:"matcha", items:[
+    { id:"mat1", name:"Матча-латте", status:"normal", sizes:[{label:"300 мл",ingredients:[{name:"Матча",amount:"2 гр"},{name:"Вода (80°С)",amount:"50 мл"},{name:"Молоко",amount:"200 мл"}]}]},
+    { id:"mat2", name:"Матча раф", status:"normal", sizes:[{label:"300 мл",ingredients:[{name:"Матча",amount:"2 гр"},{name:"Вода (80°С)",amount:"50 мл"},{name:"Молоко",amount:"100 мл"},{name:"Сливки 22%",amount:"100 мл"},{name:"Сироп Ваниль",amount:"10 мл"}]}]}
+  ]},
+  { category:"🌶️ Согревающие напитки", key:"warm", items:[
+    { id:"w1", name:"Глинтвейн", status:"normal", sizes:[{label:"440 мл",ingredients:[{name:"Вишнёвый сок",amount:"330 мл"},{name:"Палочка корицы",amount:"1 шт"},{name:"Яблоко",amount:"20 гр"},{name:"Апельсин",amount:"20 гр"},{name:"Гвоздика",amount:"3 шт"},{name:"Бадьян",amount:"2 шт"}]}]},
+    { id:"w2", name:"Яблочный Пунш", status:"normal", sizes:[{label:"440 мл",ingredients:[{name:"Сок апельсиновый",amount:"180 мл"},{name:"Сок яблочный",amount:"180 мл"},{name:"Мёд",amount:"15 гр"},{name:"Палочка корицы",amount:"1 шт"},{name:"Гвоздика",amount:"3 шт"},{name:"Апельсин",amount:"15 гр"},{name:"Лимон",amount:"15 гр"},{name:"Яблоко",amount:"15 гр"}]}]},
+    { id:"w3", name:"Гранатовый пунш", status:"normal", sizes:[{label:"440 мл",ingredients:[{name:"Гранатовый сок",amount:"200 мл"},{name:"Брусника",amount:"40 гр"},{name:"Апельсин",amount:"20 гр"},{name:"Корица",amount:"1 шт"},{name:"Мёд",amount:"30 гр"},{name:"Вода",amount:"150 мл"}]}]},
+    { id:"w4", name:"Гранатовый шоколад", status:"normal", sizes:[{label:"300 мл",ingredients:[{name:"Сок граната",amount:"300 мл"},{name:"Шоколад 60%",amount:"20 гр"},{name:"Порошок малины (укр.)",amount:"0,1 гр"}]}]},
+    { id:"w5", name:"Бамбл Апельсиновый", status:"normal", sizes:[{label:"440 мл",ingredients:[{name:"Кофе",amount:"20 гр"},{name:"Апельсиновый сок",amount:"250 мл"},{name:"Сироп Карамель",amount:"20 мл"},{name:"Лёд",amount:"100 гр"}]}]},
+    { id:"w6", name:"Бамбл Вишнёвый", status:"normal", sizes:[{label:"440 мл",ingredients:[{name:"Кофе",amount:"20 гр"},{name:"Вишнёвый сок",amount:"250 мл"},{name:"Сироп шоколад",amount:"20 мл"},{name:"Лёд",amount:"100 гр"}]}]}
+  ]},
+  { category:"🥪 Сэндвичи", key:"sandwich", items:[
+    { id:"sw1", name:"Овощной", status:"normal", sizes:[{label:"1 порция",ingredients:[{name:"Хлеб тостовый",amount:"2 шт"},{name:"Майонез",amount:"20 гр"},{name:"Лист салата",amount:"1 шт"},{name:"Помидор",amount:"20 гр"},{name:"Огурец",amount:"20 гр"},{name:"Плавленный сыр",amount:"1 шт"}]}]},
+    { id:"sw2", name:"С беконом", status:"normal", sizes:[{label:"1 порция",ingredients:[{name:"Хлеб тостовый",amount:"2 шт"},{name:"Майонез",amount:"20 гр"},{name:"Лист салата",amount:"1 шт"},{name:"Помидор",amount:"20 гр"},{name:"Бекон",amount:"1 шт"},{name:"Плавленный сыр",amount:"1 шт"}]}]},
+    { id:"sw3", name:"С сёмгой", status:"normal", sizes:[{label:"1 порция",ingredients:[{name:"Хлеб тостовый",amount:"2 шт"},{name:"Творожный сыр",amount:"20 гр"},{name:"Лист салата",amount:"1 шт"},{name:"Огурец",amount:"20 гр"},{name:"Сёмга",amount:"40 гр"}]}]},
+    { id:"sw4", name:"С курицей", status:"normal", sizes:[{label:"1 порция",ingredients:[{name:"Хлеб тостовый",amount:"2 шт"},{name:"Майонез",amount:"20 гр"},{name:"Лист салата",amount:"1 шт"},{name:"Помидор",amount:"20 гр"},{name:"Огурец",amount:"20 гр"},{name:"Курица",amount:"30 гр"},{name:"Плавленный сыр",amount:"1 шт"}]}]},
+    { id:"sw5", name:"С арахисовой пастой", status:"normal", sizes:[{label:"1 порция",ingredients:[{name:"Хлеб тостовый",amount:"2 шт"},{name:"Арахисовая паста",amount:"20 гр"}]}]},
+    { id:"sw6", name:"С Nutella", status:"normal", sizes:[{label:"1 порция",ingredients:[{name:"Хлеб тостовый",amount:"2 шт"},{name:"Nutella",amount:"20 гр"}]}]}
+  ]}
+];
+
+// ═══════════════ STATE ═══════════════
+let db = [], ingList = [], editMode=false, cat='all', q='';
+
+function buildIngListFromDB(){
+  const set = new Set();
+  db.forEach(sec=>sec.items.forEach(it=>it.sizes.forEach(sz=>sz.ingredients.forEach(i=>{ if(i.name.trim()) set.add(i.name.trim()); }))));
+  return [...set].sort((a,b)=>a.localeCompare(b,'ru'));
+}
+
+function save(){ saveToFirebase(); }
+
+function uid(){ return Math.random().toString(36).slice(2,9); }
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
+function closeModal(){ document.getElementById('overlay').classList.remove('open'); }
+function openModal(title,body,foot){
+  document.getElementById('mTitle').textContent=title;
+  document.getElementById('mBody').innerHTML=body;
+  document.getElementById('mFoot').innerHTML=foot;
+  document.getElementById('overlay').classList.add('open');
+}
+document.getElementById('overlay').addEventListener('click',e=>{ if(e.target===document.getElementById('overlay')) closeModal(); });
+
+
+
+// ═══════════════ STATUS ═══════════════
+function setStatus(ck,id,s){
+  const it=db.find(c=>c.key===ck)?.items.find(i=>i.id===id); if(!it) return;
+  it.status=it.status===s?'normal':s; save(); render();
+  toast({new:'🟢 Новинка',featured:'🟡 Активный',hidden:'⚫ Скрытый',normal:'↩️ Сброшен'}[it.status]||'✅');
+}
+
+// ═══════════════ DELETE ═══════════════
+function deleteItem(ck,id){
+  const cat2=db.find(c=>c.key===ck); if(!cat2) return;
+  const it=cat2.items.find(i=>i.id===id);
+  openModal('Удалить рецепт?',
+    `<p style="color:var(--text2);font-size:15px;line-height:1.5;">Удалить <strong>${it.name}</strong>?<br><span style="color:var(--muted);font-size:13px;">Это действие нельзя отменить.</span></p>`,
+    `<button class="btn-danger" onclick="confDel('${ck}','${id}')">🗑️ Удалить</button><button class="btn-cancel" onclick="closeModal()">Отмена</button>`);
+}
+window.confDel=(ck,id)=>{ const c=db.find(x=>x.key===ck); if(c){ c.items=c.items.filter(i=>i.id!==id); save(); closeModal(); render(); toast('🗑️ Удалён'); }};
+
+// ═══════════════ INGREDIENT AUTOCOMPLETE ═══════════════
+let acActive = -1;
+function setupAutocomplete(input, si, ii){
+  const wrap = input.closest('.ie-name-wrap');
+  let list = null;
+
+  function showList(items){
+    removeList();
+    if(!items.length) return;
+    list = document.createElement('div');
+    list.className = 'autocomplete-list';
+    items.forEach((name, idx)=>{
+      const q2 = input.value.toLowerCase();
+      const hi = name.replace(new RegExp('('+q2.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi'), '<mark>$1</mark>');
+      const it = document.createElement('div'); it.className='ac-item'; it.innerHTML=hi;
+      it.addEventListener('mousedown', e=>{ e.preventDefault(); input.value=name; ES.sizes[si].ingredients[ii].name=name; removeList(); });
+      list.appendChild(it);
+    });
+    wrap.appendChild(list);
+    acActive=-1;
+  }
+  function removeList(){ if(list){ list.remove(); list=null; } acActive=-1; }
+
+  input.addEventListener('input', ()=>{
+    ES.sizes[si].ingredients[ii].name = input.value;
+    const v = input.value.toLowerCase().trim();
+    if(!v){ removeList(); return; }
+    const matches = ingList.filter(n=>n.toLowerCase().includes(v));
+    showList(matches);
+  });
+  input.addEventListener('keydown', e=>{
+    if(!list) return;
+    const items = list.querySelectorAll('.ac-item');
+    if(e.key==='ArrowDown'){ e.preventDefault(); acActive=Math.min(acActive+1,items.length-1); items.forEach((it,i)=>it.classList.toggle('ac-active',i===acActive)); }
+    else if(e.key==='ArrowUp'){ e.preventDefault(); acActive=Math.max(acActive-1,0); items.forEach((it,i)=>it.classList.toggle('ac-active',i===acActive)); }
+    else if(e.key==='Enter'&&acActive>=0){ e.preventDefault(); const sel=items[acActive]; if(sel){ input.value=sel.textContent; ES.sizes[si].ingredients[ii].name=sel.textContent; removeList(); } }
+    else if(e.key==='Escape'){ removeList(); }
+  });
+  input.addEventListener('blur', ()=>setTimeout(removeList, 150));
+}
+
+// ═══════════════ MODAL BODY ═══════════════
+function buildModalBody(state){
+  const statusOpts = [
+    {v:'normal',icon:'⬜',label:'Обычный'},
+    {v:'new',icon:'🟢',label:'Новинка'},
+    {v:'featured',icon:'🟡',label:'Активный'},
+    {v:'hidden',icon:'⚫',label:'Скрытый'},
+  ];
+
+  const szHTML = state.sizes.map((sz,si)=>`
+    <div class="sz-block">
+      <div class="sz-block-title">
+        <span>Размер ${si+1}</span>
+        ${state.sizes.length>1?`<button class="btn-del-sz" onclick="rmSz(${si})">✕ убрать</button>`:''}
+      </div>
+      <input class="sz-vol-input" placeholder="Объём (напр. 220 мл)" value="${sz.label}" oninput="ES.sizes[${si}].label=this.value">
+      <div class="ings-ed" id="ings_${si}">
+        ${sz.ingredients.map((ing,ii)=>`
+          <div class="ie">
+            <div class="ie-name-wrap">
+              <input class="ie-name" placeholder="Ингредиент" value="${ing.name}" oninput="ES.sizes[${si}].ingredients[${ii}].name=this.value" data-si="${si}" data-ii="${ii}">
+            </div>
+            <input class="ie-amt" placeholder="Кол-во" value="${ing.amount}" oninput="ES.sizes[${si}].ingredients[${ii}].amount=this.value">
+            <button class="btn-del-ing" onclick="rmIng(${si},${ii})">✕</button>
+          </div>`).join('')}
+      </div>
+      <button class="btn-add-ing" onclick="addIng(${si})">＋ Добавить ингредиент</button>
+    </div>`).join('');
+
+  return `
+    <div class="field">
+      <label>Название напитка</label>
+      <input placeholder="Напр. Латте с малиной" value="${state.name}" oninput="ES.name=this.value">
+    </div>
+    <div class="field">
+      <label>Статус</label>
+      <div class="status-grid">
+        ${statusOpts.map(o=>`<div class="status-opt${state.status===o.v?' active':''}" data-v="${o.v}" onclick="setEditStatus('${o.v}',this)">${o.icon} ${o.label}</div>`).join('')}
+      </div>
+    </div>
+    <div class="m-divider">Размеры и ингредиенты</div>
+    <div id="szEd">${szHTML}</div>
+    <button class="btn-add-sz" onclick="addSz()">＋ Добавить размер</button>`;
+}
+
+window.setEditStatus=(v,el)=>{
+  ES.status=v;
+  document.querySelectorAll('.status-opt').forEach(o=>o.classList.toggle('active',o.dataset.v===v));
+};
+
+function rebuildModal(){
+  document.getElementById('mBody').innerHTML = buildModalBody(ES);
+  attachAutocompletes();
+}
+
+function attachAutocompletes(){
+  document.querySelectorAll('.ie-name').forEach(inp=>{
+    const si = +inp.dataset.si; const ii = +inp.dataset.ii;
+    setupAutocomplete(inp, si, ii);
+  });
+}
+
+function openEdit(ck,id){
+  const cat2=db.find(c=>c.key===ck);
+  const isNew=!id;
+  window.ES=isNew
+    ?{id:uid(),name:'',status:'normal',sizes:[{label:'',ingredients:[{name:'',amount:''}]}]}
+    :JSON.parse(JSON.stringify(cat2.items.find(i=>i.id===id)));
+  window.addIng=(si)=>{ ES.sizes[si].ingredients.push({name:'',amount:''}); rebuildModal(); };
+  window.rmIng=(si,ii)=>{ ES.sizes[si].ingredients.splice(ii,1); rebuildModal(); };
+  window.addSz=()=>{ ES.sizes.push({label:'',ingredients:[{name:'',amount:''}]}); rebuildModal(); };
+  window.rmSz=(si)=>{ ES.sizes.splice(si,1); rebuildModal(); };
+  openModal(
+    isNew?'➕ Новый рецепт':'✏️ Редактировать рецепт',
+    buildModalBody(ES),
+    `<button class="btn-save" onclick="saveIt('${ck}','${id||''}')">💾 Сохранить</button>
+     <button class="btn-cancel" onclick="closeModal()">Отмена</button>
+     ${!isNew?`<button class="btn-danger" onclick="closeModal();deleteItem('${ck}','${id}')">🗑️</button>`:''}`
+  );
+  attachAutocompletes();
+}
+
+window.saveIt=(ck,id)=>{
+  const c=db.find(x=>x.key===ck); if(!c) return;
+  if(!ES.name.trim()){ toast('⚠️ Введите название'); return; }
+  ES.name=ES.name.trim();
+  // add new ingredient names to global list
+  ES.sizes.forEach(sz=>sz.ingredients.forEach(i=>{ const n=i.name.trim(); if(n&&!ingList.includes(n)){ ingList.push(n); ingList.sort((a,b)=>a.localeCompare(b,'ru')); } }));
+  if(id){ const idx=c.items.findIndex(i=>i.id===id); if(idx!==-1) c.items[idx]=ES; }
+  else c.items.push(ES);
+  save(); closeModal(); render(); toast(id?'✅ Обновлён':'✅ Добавлен');
+};
+
+// ═══════════════ ADD CATEGORY ═══════════════
+function openAddCat(){
+  openModal('➕ Новая категория',
+    `<div class="field"><label>Иконка (эмодзи)</label><input id="cEmoji" value="☕" maxlength="4"></div>
+     <div class="field"><label>Название категории</label><input id="cName" placeholder="Напр. Лимонады"></div>`,
+    `<button class="btn-save" onclick="saveCat()">Создать</button><button class="btn-cancel" onclick="closeModal()">Отмена</button>`);
+}
+window.saveCat=()=>{
+  const e=document.getElementById('cEmoji').value.trim()||'📋';
+  const n=document.getElementById('cName').value.trim();
+  if(!n){ toast('⚠️ Введите название'); return; }
+  db.push({category:e+' '+n,key:'c_'+uid(),items:[]});
+  save(); closeModal(); render(); toast('✅ Категория создана');
+};
+
+// ═══════════════ INGREDIENTS PANEL ═══════════════
+function getIngStats(){
+  const map = new Map();
+  db.forEach(sec=>sec.items.forEach(it=>{
+    const seen = new Set();
+    it.sizes.forEach(sz=>sz.ingredients.forEach(i=>{
+      const n=i.name.trim(); if(!n) return;
+      if(!seen.has(n)){ seen.add(n); map.set(n,(map.get(n)||0)+1); }
+    }));
+  }));
+  return map;
+}
+
+function openIngModal(){
+  const panel = renderIngPanel();
+  panel.classList.add('open');
+  // wrap panel body content into modal
+  const bodyHTML = panel.querySelector('.ing-panel-body').innerHTML;
+  openModal('🧂 Справочник ингредиентов', `<div style="margin:-4px 0">${bodyHTML}</div>`,
+    '<button class="btn-cancel" style="width:100%" onclick="closeModal()">Закрыть</button>');
+  // re-attach event handlers since innerHTML was cloned
+  // handlers use window.* so they work fine
+}
+
+function renderIngPanel(){
+  const stats = getIngStats();
+  const allNames = [...new Set([...ingList, ...stats.keys()])].sort((a,b)=>a.localeCompare(b,'ru'));
+  const panel = document.createElement('div');
+  panel.className = 'ing-panel';
+  panel.id = 'ingPanel';
+
+  panel.innerHTML = `
+    <div class="ing-panel-hdr" onclick="toggleIngPanel()">
+      <div class="ing-panel-title">
+        <span>🧂</span> Справочник ингредиентов
+        <span class="ing-panel-sub">${allNames.length} позиций</span>
+      </div>
+      <span class="ing-chevron">▾</span>
+    </div>
+    <div class="ing-panel-body">
+      <table class="ing-table">
+        <thead><tr><th>Ингредиент</th><th>Напитков</th><th></th></tr></thead>
+        <tbody id="ingTbody">
+          ${allNames.map(name=>{
+            const cnt = stats.get(name)||0;
+            return `<tr id="ingrow_${btoa(encodeURIComponent(name)).replace(/[^a-z0-9]/gi,'_')}">
+              <td><span class="ing-view-name">${name}</span></td>
+              <td><span class="ing-count">${cnt}</span></td>
+              <td><div style="display:flex;gap:5px;justify-content:flex-end;">
+                <button class="btn-sm-ok" title="Переименовать" style="display:none" onclick="startRenameIng('${encodeURIComponent(name)}')">✏️</button>
+                <button class="btn-sm-del" title="Удалить" style="display:none" onclick="deleteIng('${encodeURIComponent(name)}')">✕</button>
+              </div></td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+      <div class="ing-panel-footer" style="display:none">
+        <div class="ing-edit-row" style="flex:1">
+          <input id="newIngInput" placeholder="Новый ингредиент..." onkeydown="if(event.key==='Enter')addIngGlobal()">
+          <button class="btn-add-ing-global" onclick="addIngGlobal()">＋ Добавить</button>
+        </div>
+      </div>
+    </div>`;
+  return panel;
+}
+
+window.toggleIngPanel=()=>{
+  document.getElementById('ingPanel')?.classList.toggle('open');
+};
+
+window.addIngGlobal=()=>{
+  const inp=document.getElementById('newIngInput');
+  const n=inp.value.trim();
+  if(!n){ toast('⚠️ Введите название'); return; }
+  if(ingList.includes(n)){ toast('⚠️ Уже есть в списке'); inp.value=''; return; }
+  ingList.push(n); ingList.sort((a,b)=>a.localeCompare(b,'ru'));
+  save(); renderIngSection(); toast('✅ Ингредиент добавлен');
+};
+
+window.deleteIng=(enc)=>{
+  const name=decodeURIComponent(enc);
+  const usedIn = [];
+  db.forEach(sec=>sec.items.forEach(it=>{ if(it.sizes.some(sz=>sz.ingredients.some(i=>i.name===name))) usedIn.push(it.name); }));
+  if(usedIn.length){
+    openModal('Удалить ингредиент?',
+      `<p style="color:var(--text2);font-size:14px;line-height:1.6;"><strong>${name}</strong> используется в напитках:<br><span style="color:var(--muted)">${usedIn.join(', ')}</span><br><br>При удалении он останется в этих рецептах, но пропадёт из справочника.</p>`,
+      `<button class="btn-danger" onclick="confDeleteIng('${enc}')">Удалить из справочника</button><button class="btn-cancel" onclick="closeModal()">Отмена</button>`);
+  } else {
+    ingList=ingList.filter(i=>i!==name); save(); renderIngSection(); toast('🗑️ Удалён');
+  }
+};
+window.confDeleteIng=(enc)=>{ const n=decodeURIComponent(enc); ingList=ingList.filter(i=>i!==n); save(); closeModal(); renderIngSection(); toast('🗑️ Удалён'); };
+
+window.startRenameIng=(enc)=>{
+  const name=decodeURIComponent(enc);
+  openModal('✏️ Переименовать ингредиент',
+    `<div class="field"><label>Старое название</label><input value="${name}" disabled style="opacity:.6;"></div>
+     <div class="field"><label>Новое название</label><input id="renameInp" value="${name}" placeholder="Новое название"></div>`,
+    `<button class="btn-save" onclick="confirmRename('${enc}')">Сохранить</button><button class="btn-cancel" onclick="closeModal()">Отмена</button>`);
+};
+window.confirmRename=(enc)=>{
+  const oldName=decodeURIComponent(enc);
+  const newName=document.getElementById('renameInp').value.trim();
+  if(!newName){ toast('⚠️ Введите название'); return; }
+  if(newName===oldName){ closeModal(); return; }
+  // rename in all recipes
+  db.forEach(sec=>sec.items.forEach(it=>it.sizes.forEach(sz=>sz.ingredients.forEach(i=>{ if(i.name===oldName) i.name=newName; }))));
+  // rename in ingList
+  const idx=ingList.indexOf(oldName);
+  if(idx!==-1) ingList[idx]=newName;
+  else if(!ingList.includes(newName)) ingList.push(newName);
+  ingList.sort((a,b)=>a.localeCompare(b,'ru'));
+  save(); closeModal(); render(); renderIngSection(); toast('✅ Переименован во всех рецептах');
+};
+
+function renderIngSection(){
+  // if ing modal is currently open, refresh it
+  if(document.getElementById('overlay').classList.contains('open') &&
+     document.getElementById('mTitle').textContent.includes('Ингредиент')){
+    openIngModal();
+  }
+}
+
+// ═══════════════ PILLS ═══════════════
+function renderPills(){
+  const el=document.getElementById('pills'); el.innerHTML='';
+  const mk=(label,key)=>{
+    const p=document.createElement('button');
+    p.className='pill'+(cat===key?' active':'');
+    p.textContent=label; p.dataset.key=key;
+    p.onclick=()=>{ cat=key; render(); };
+    el.appendChild(p);
+  };
+  mk('Все','all');
+  db.forEach(s=>mk(s.category,s.key));
+  if(editMode){
+    const p=document.createElement('button');
+    p.className='pill pill-add'; p.textContent='＋ Категория';
+    p.onclick=openAddCat; el.appendChild(p);
+  }
+}
+
+// ═══════════════ RENDER ═══════════════
+function render(){
+  renderPills();
+  const main=document.getElementById('main'); main.innerHTML='';
+
+
+  let total=0;
+  db.forEach(sec=>{
+    if(cat!=='all'&&cat!==sec.key) return;
+    const matched=sec.items.filter(it=>{
+      if(!editMode&&it.status==='hidden') return false;
+      if(!q) return true;
+      if(it.name.toLowerCase().includes(q)) return true;
+      return it.sizes.some(s=>s.ingredients.some(i=>i.name.toLowerCase().includes(q)));
+    });
+    if(!matched.length&&!editMode) return;
+    total++;
+    const wrap=document.createElement('div');
+    const sh=document.createElement('div'); sh.className='sec-hdr';
+    const t=document.createElement('div'); t.className='sec-title'; t.textContent=sec.category;
+    const ab=document.createElement('button'); ab.className='btn-add-item'; ab.innerHTML='＋ Добавить';
+    ab.onclick=()=>openEdit(sec.key,null);
+    sh.appendChild(t); sh.appendChild(ab); wrap.appendChild(sh);
+    const grid=document.createElement('div'); grid.className='cards';
+    matched.forEach(it=>grid.appendChild(mkCard(sec.key,it)));
+    if(!matched.length&&editMode){
+      const e=document.createElement('div'); e.className='empty-cat';
+      e.textContent='Нет рецептов. Нажмите «＋ Добавить».'; grid.appendChild(e);
+    }
+    wrap.appendChild(grid); main.appendChild(wrap);
+  });
+  if(!total&&q) main.appendChild(Object.assign(document.createElement('div'),{className:'empty',innerHTML:'<span>🔍</span>Ничего не найдено'}));
+}
+
+// ═══════════════ BUILD CARD ═══════════════
+function mkCard(ck,item){
+  const card=document.createElement('div');
+  card.className='card'+(item.status==='new'?' is-new':item.status==='featured'?' is-feat':item.status==='hidden'?' is-hidden':'');
+
+  // edit controls row — inside card, above name
+  const ec=document.createElement('div'); ec.className='ec';
+  ec.innerHTML=`
+    <button class="ec-btn" onclick="event.stopPropagation();openEdit('${ck}','${item.id}')">✏️ Изменить</button>
+    <button class="ec-btn ec-new" onclick="event.stopPropagation();setStatus('${ck}','${item.id}','new')">🟢</button>
+    <button class="ec-btn ec-feat" onclick="event.stopPropagation();setStatus('${ck}','${item.id}','featured')">🟡</button>
+    <button class="ec-btn ec-hid" onclick="event.stopPropagation();setStatus('${ck}','${item.id}','hidden')">⚫</button>`;
+  card.appendChild(ec);
+
+  // header: name + size badges
+  const hdr=document.createElement('div'); hdr.className='card-hdr';
+  const nm=document.createElement('div'); nm.className='card-name'; nm.textContent=item.name;
+  const szb=document.createElement('div'); szb.className='sz-badges';
+  item.sizes.forEach(s=>{ const b=document.createElement('span'); b.className='sz-badge'; b.textContent=s.label; szb.appendChild(b); });
+  hdr.appendChild(nm); hdr.appendChild(szb);
+  card.appendChild(hdr);
+
+  // status badge — bottom-right, in own row
+  const statusRow=document.createElement('div'); statusRow.className='card-status';
+  if(item.status==='new'){const b=document.createElement('span');b.className='badge b-new';b.textContent='Новинка';statusRow.appendChild(b);}
+  if(item.status==='featured'){const b=document.createElement('span');b.className='badge b-feat';b.textContent='Активный';statusRow.appendChild(b);}
+  if(item.status==='hidden'){const b=document.createElement('span');b.className='badge b-hid';b.textContent='Скрыт';statusRow.appendChild(b);}
+  card.appendChild(statusRow);
+
+  // body
+  const body=document.createElement('div'); body.className='card-body';
+  let asi=0;
+  function buildBody(){
+    body.innerHTML='';
+    if(item.sizes.length>1){
+      const tabs=document.createElement('div'); tabs.className='sz-tabs';
+      item.sizes.forEach((s,i)=>{
+        const tab=document.createElement('div');
+        tab.className='sz-tab'+(i===asi?' active':'');
+        tab.textContent=s.label;
+        tab.onclick=e=>{ e.stopPropagation(); asi=i; buildBody(); };
+        tabs.appendChild(tab);
+      });
+      body.appendChild(tabs);
+    }
+    const ingsEl=document.createElement('div'); ingsEl.className='ings';
+    item.sizes[asi].ingredients.forEach(ing=>{
+      const row=document.createElement('div'); row.className='ing-row';
+      const n=document.createElement('span'); n.className='ing-name'; n.textContent=ing.name;
+      const a=document.createElement('span'); a.className='ing-amt'; a.textContent=ing.amount;
+      row.appendChild(n); row.appendChild(a); ingsEl.appendChild(row);
+    });
+    body.appendChild(ingsEl);
+    const ft=document.createElement('div'); ft.className='card-foot';
+    ft.textContent='Объём: '+item.sizes[asi].label;
+    body.appendChild(ft);
+  }
+  buildBody();
+  card.appendChild(body);
+
+  hdr.onclick=()=>{
+    const wasExpanded=card.classList.contains('expanded');
+    const grid=card.parentElement;
+    const allCards=Array.from(grid.querySelectorAll('.card'));
+    const tops=allCards.map(c2=>c2.getBoundingClientRect().top);
+    const myTop=card.getBoundingClientRect().top;
+    if(!wasExpanded){
+      allCards.forEach((c2,i)=>{ if(Math.abs(tops[i]-myTop)<4) c2.classList.add('expanded'); });
+      card.classList.add('selected');
+    } else {
+      allCards.forEach((c2,i)=>{ if(Math.abs(tops[i]-myTop)<4){ c2.classList.remove('expanded'); c2.classList.remove('selected'); } });
+    }
+  };
+  return card;
+}
+
+document.getElementById('search').addEventListener('input',e=>{ q=e.target.value.toLowerCase().trim(); render(); });
+
+  // ── FIREBASE SETUP ──
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAjezCzh_JEZZUho_vqcM1Zb6shzBYyVAM",
+    authDomain: "salvador-techcard.firebaseapp.com",
+    projectId: "salvador-techcard",
+    storageBucket: "salvador-techcard.firebasestorage.app",
+    messagingSenderId: "1055541875410",
+    appId: "1:1055541875410:web:25a24634f9da7d8dfe930b"
+  };
+  const fbApp = initializeApp(firebaseConfig);
+  const fdb = getFirestore(fbApp);
+  const DB_DOC = doc(fdb, 'techcard', 'data');
+
+  async function loadFromFirebase(){
+    try {
+      const snap = await getDoc(DB_DOC);
+      if(snap.exists()){
+        const d = snap.data();
+        db = d.recipes || JSON.parse(JSON.stringify(DEF));
+        ingList = d.ingredients || buildIngListFromDB();
+      } else {
+        db = JSON.parse(JSON.stringify(DEF));
+        ingList = buildIngListFromDB();
+      }
+    } catch(e){ console.error('Firebase load error', e); }
+    render();
+  }
+
+  async function saveToFirebase(){
+    try {
+      await setDoc(DB_DOC, { recipes: db, ingredients: ingList });
+    } catch(e){ console.error('Firebase save error', e); toast('❌ Ошибка сохранения'); }
+  }
+
+  // Live updates — всем кто смотрит видит изменения сразу
+  onSnapshot(DB_DOC, (snap)=>{
+    if(snap.exists()){
+      const d = snap.data();
+      db = d.recipes || db;
+      ingList = d.ingredients || ingList;
+      render();
+    }
+  });
+
+  loadFromFirebase();
+
+</script>
+</body>
+</html>
