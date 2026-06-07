@@ -643,6 +643,7 @@ function render(){
   let total=0;
   db.forEach(sec=>{
     if(cat!=='all'&&cat!==sec.key) return;
+    if(sec.hidden) return;
     const matched=sec.items.filter(it=>{
       if(!editMode&&it.status==='hidden') return false;
       if(!q) return true;

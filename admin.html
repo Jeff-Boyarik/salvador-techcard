@@ -196,6 +196,16 @@ main { max-width:900px; margin:0 auto; padding:18px 14px 80px; }
   .ing-btn-label { display:none; }
   .ing-btn-short { display:inline; }
 }
+
+.btn-cat-ctrl {
+  display:none; background:#fff; border:1.5px solid var(--border);
+  border-radius:8px; padding:5px 10px; font-size:12px; font-weight:600;
+  cursor:pointer; font-family:inherit; color:var(--text2);
+  transition:all .14s; white-space:nowrap;
+}
+.edit-mode .btn-cat-ctrl { display:inline-flex; align-items:center; gap:4px; }
+.btn-cat-ctrl:hover { border-color:var(--acc); color:var(--acc); background:var(--acc-l); }
+.btn-cat-active { border-color:#94a3b8!important; color:#64748b!important; background:#f8fafc!important; }
 </style>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -505,8 +515,43 @@ window.saveCat=()=>{
   const e=document.getElementById('cEmoji').value.trim()||'📋';
   const n=document.getElementById('cName').value.trim();
   if(!n){ toast('⚠️ Введите название'); return; }
-  db.push({category:e+' '+n,key:'c_'+uid(),items:[]});
+  db.push({category:e+' '+n,key:'c_'+uid(),items:[],hidden:false});
   save(); closeModal(); render(); toast('✅ Категория создана');
+};
+
+function toggleCatHidden(key){
+  const sec=db.find(s=>s.key===key); if(!sec) return;
+  sec.hidden=!sec.hidden; save(); render();
+  toast(sec.hidden?'🙈 Раздел скрыт':'👁 Раздел показан');
+}
+
+function openEditCat(key){
+  const sec=db.find(s=>s.key===key); if(!sec) return;
+  const parts=sec.category.split(' ');
+  const emoji=parts[0]; const name=parts.slice(1).join(' ');
+  openModal('✏️ Редактировать раздел',
+    \`<div class="field"><label>Иконка</label><input id="eCatEmoji" value="\${emoji}" maxlength="4"></div>
+     <div class="field"><label>Название</label><input id="eCatName" value="\${name}"></div>\`,
+    \`<button class="btn-save" onclick="saveEditCat('\${key}')">Сохранить</button>
+     <button class="btn-cancel" onclick="closeModal()">Отмена</button>
+     <button class="btn-danger" onclick="confirmDelCat('\${key}')">🗑️</button>\`);
+}
+window.saveEditCat=(key)=>{
+  const sec=db.find(s=>s.key===key); if(!sec) return;
+  const e=document.getElementById('eCatEmoji').value.trim()||'📋';
+  const n=document.getElementById('eCatName').value.trim();
+  if(!n){ toast('⚠️ Введите название'); return; }
+  sec.category=e+' '+n; save(); closeModal(); render(); toast('✅ Раздел обновлён');
+};
+window.confirmDelCat=(key)=>{
+  const sec=db.find(s=>s.key===key); if(!sec) return;
+  openModal('Удалить раздел?',
+    \`<p style="color:var(--text2);font-size:15px;line-height:1.5;">Удалить раздел <strong>\${sec.category}</strong> и все его рецепты (\${sec.items.length} шт)?<br><span style="color:#ef4444;font-size:13px;">Это нельзя отменить.</span></p>\`,
+    \`<button class="btn-danger" onclick="doDelCat('\${key}')">🗑️ Удалить всё</button>
+     <button class="btn-cancel" onclick="closeModal()">Отмена</button>\`);
+};
+window.doDelCat=(key)=>{
+  db=db.filter(s=>s.key!==key); save(); closeModal(); render(); toast('🗑️ Раздел удалён');
 };
 
 // ═══════════════ INGREDIENTS PANEL ═══════════════
@@ -660,6 +705,7 @@ function render(){
   let total=0;
   db.forEach(sec=>{
     if(cat!=='all'&&cat!==sec.key) return;
+    if(!editMode&&sec.hidden) return;
     const matched=sec.items.filter(it=>{
       if(!editMode&&it.status==='hidden') return false;
       if(!q) return true;
@@ -670,10 +716,24 @@ function render(){
     total++;
     const wrap=document.createElement('div');
     const sh=document.createElement('div'); sh.className='sec-hdr';
-    const t=document.createElement('div'); t.className='sec-title'; t.textContent=sec.category;
+    const t=document.createElement('div'); t.className='sec-title';
+    t.textContent=sec.category;
+    if(sec.hidden) t.style.opacity='.4';
+    const shBtns=document.createElement('div'); shBtns.style.cssText='display:flex;gap:6px;align-items:center;';
     const ab=document.createElement('button'); ab.className='btn-add-item'; ab.innerHTML='＋ Добавить';
     ab.onclick=()=>openEdit(sec.key,null);
-    sh.appendChild(t); sh.appendChild(ab); wrap.appendChild(sh);
+    // category controls (edit mode only)
+    const cbHide=document.createElement('button');
+    cbHide.className='btn-cat-ctrl'+(sec.hidden?' btn-cat-active':'');
+    cbHide.textContent=sec.hidden?'👁 Показать':'🙈 Скрыть раздел';
+    cbHide.onclick=()=>toggleCatHidden(sec.key);
+    const cbEdit=document.createElement('button');
+    cbEdit.className='btn-cat-ctrl';
+    cbEdit.textContent='✏️';
+    cbEdit.onclick=()=>openEditCat(sec.key);
+    shBtns.appendChild(ab);
+    if(editMode){ shBtns.appendChild(cbHide); shBtns.appendChild(cbEdit); }
+    sh.appendChild(t); sh.appendChild(shBtns); wrap.appendChild(sh);
     const grid=document.createElement('div'); grid.className='cards';
     matched.forEach(it=>grid.appendChild(mkCard(sec.key,it)));
     if(!matched.length&&editMode){
