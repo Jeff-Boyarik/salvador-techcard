@@ -190,6 +190,12 @@ main { max-width:900px; margin:0 auto; padding:18px 14px 80px; }
 .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--text); color:#fff; padding:10px 20px; border-radius:12px; font-size:14px; font-weight:600; opacity:0; pointer-events:none; transition:opacity .3s; z-index:999; white-space:nowrap; }
 .toast.show { opacity:1; }
 @media(max-width:400px){ .cards{grid-template-columns:1fr;} .status-grid{grid-template-columns:1fr;} }
+
+.ing-btn-short { display:none; }
+@media(max-width:480px){
+  .ing-btn-label { display:none; }
+  .ing-btn-short { display:inline; }
+}
 </style>
 </head>
 <body>
@@ -209,7 +215,7 @@ main { max-width:900px; margin:0 auto; padding:18px 14px 80px; }
     <div class="hdr-info"><h1>SALVADOR</h1><p>Технологическая карта · <strong>Администратор</strong></p></div>
     <div class="hdr-btns">
       <button class="btn-hdr" id="editBtn" onclick="toggleEdit()">✏️ Редактор</button>
-      <button class="btn-hdr" onclick="openIngModal()">🧂 Ингредиенты</button>
+      <button class="btn-hdr" onclick="openIngModal()"><span class="ing-btn-label">🧂 Ингредиенты</span><span class="ing-btn-short">🧂</span></button>
     </div>
   </div>
   <div class="hdr-controls">
