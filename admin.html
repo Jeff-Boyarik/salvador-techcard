@@ -233,8 +233,8 @@ main { max-width:900px; margin:0 auto; padding:18px 14px 80px; }
 <main id="main"></main>
 
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 // ═══════════════ DEFAULT DATA ═══════════════
 const DEF = [
@@ -756,6 +756,26 @@ function mkCard(ck,item){
 }
 
 document.getElementById('search').addEventListener('input',e=>{ q=e.target.value.toLowerCase().trim(); render(); });
+
+
+  // ── Expose all functions to window for onclick handlers ──
+  window.toggleEdit = toggleEdit;
+  window.openIngModal = openIngModal;
+  window.openEdit = openEdit;
+  window.setStatus = setStatus;
+  window.deleteItem = deleteItem;
+  window.openAddCat = openAddCat;
+  window.closeModal = closeModal;
+  window.toggleIngPanel = toggleIngPanel;
+  window.addIngGlobal = addIngGlobal;
+  window.deleteIng = deleteIng;
+  window.confDeleteIng = confDeleteIng;
+  window.startRenameIng = startRenameIng;
+  window.confirmRename = confirmRename;
+  window.confDel = confDel;
+  window.saveCat = saveCat;
+  window.saveIt = saveIt;
+  window.setEditStatus = setEditStatus;
 
   // ── FIREBASE SETUP ──
 
